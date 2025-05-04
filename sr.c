@@ -8,3 +8,4 @@
 #define WINDOWSIZE 6
 #define SEQSPACE 7
 #define NOTINUSE (-1)
+
