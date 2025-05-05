@@ -3,20 +3,20 @@
 
 #include "emulator.h"
 
+#define WINDOW_SIZE 6
+#define SEQSPACE 12
+#define TIMEOUT 20.0
 
-/* Selective Repeat specific parameters */
-#define RTT 16.0       /* Round trip time */
-#define WINDOWSIZE 6   /* Window size (must be <= SEQSPACE/2) */
-#define SEQSPACE 7     /* Sequence number space */
-#define NOTINUSE (-1)  /* Marks unused header fields */
+void A_init(void);
+void A_output(struct msg message);
+void A_input(struct pkt packet);
+void A_timerinterrupt(void);
 
-/* Packet structure (unchanged from GBN) */
-struct pkt {
-    int seqnum;
-    int acknum;
-    int checksum;
-    char payload[20];
-};
+void B_init(void);
+void B_input(struct pkt packet);
 
+/* Add these dummy functions to satisfy linker */
+void B_output(struct msg message);
+void B_timerinterrupt(void);
 
 #endif /* SR_H */
