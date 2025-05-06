@@ -148,3 +148,19 @@ void A_timerinterrupt(void) {
     }
     starttimer(A, RTT);
 }
+
+/* Receiver Implementation */
+void B_init(void) {
+    receiver_expected_seq_num = 0;
+    memset(received, 0, sizeof(received));
+}
+
+void B_input(struct pkt packet) {
+    if (is_corrupted(packet)) {
+        if (TRACE > 0) {
+            printf("Corrupted packet received. Sending ACK for last good packet %d\n",
+                 (receiver_expected_seq_num - 1 + SEQ_NUM_MODULO) % SEQ_NUM_MODULO);
+        }
+        send_ack(B, (receiver_expected_seq_num - 1 + SEQ_NUM_MODULO) % SEQ_NUM_MODULO);
+        return;
+    }
