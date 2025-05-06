@@ -63,3 +63,32 @@ void A_init(void) {
     memset(acked, 0, sizeof(acked));
 }
 
+void A_output(struct msg message) {
+    /* Check if window is full */
+    if ((sender_next_seq_num - sender_base) % SEQ_NUM_MODULO >= WINDOW_SIZE) {
+        if (TRACE > 0) {
+            printf("Window full (base=%d, next=%d). Message dropped.\n", 
+                  sender_base, sender_next_seq_num);
+        }
+        window_full++;
+        return;
+    }
+
+    /* Create and store packet */
+    int window_index = sender_next_seq_num % WINDOW_SIZE;
+    sender_window[window_index].seqnum = sender_next_seq_num;
+    sender_window[window_index].acknum = -1;
+    strncpy(sender_window[window_index].payload, message.data, 20);
+    sender_window[window_index].checksum = calculate_checksum(sender_window[window_index]);
+
+    acked[window_index] = 0;
+    send_packet(A, sender_window[window_index]);
+
+    /* Start timer if first packet in window */
+    if (sender_base == sender_next_seq_num) {
+        starttimer(A, RTT);
+    }
+
+    sender_next_seq_num = (sender_next_seq_num + 1) % SEQ_NUM_MODULO;
+}
+
