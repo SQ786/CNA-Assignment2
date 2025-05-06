@@ -132,3 +132,19 @@ void A_input(struct pkt packet) {
         }
     }
 }
+
+void A_timerinterrupt(void) {
+    if (TRACE > 0) {
+        printf("Timeout occurred. Resending unACKed packets in window %d-%d\n",
+              sender_base, (sender_base + WINDOW_SIZE - 1) % SEQ_NUM_MODULO);
+    }
+
+    /* Resend all unACKed packets in window */
+    for (int i = sender_base; i != sender_next_seq_num; i = (i + 1) % SEQ_NUM_MODULO) {
+        if (!acked[i % WINDOW_SIZE]) {
+            send_packet(A, sender_window[i % WINDOW_SIZE]);
+            packets_resent++;
+        }
+    }
+    starttimer(A, RTT);
+}
