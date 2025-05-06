@@ -92,3 +92,43 @@ void A_output(struct msg message) {
     sender_next_seq_num = (sender_next_seq_num + 1) % SEQ_NUM_MODULO;
 }
 
+void A_input(struct pkt packet) {
+    if (is_corrupted(packet)) {
+        if (TRACE > 0) {
+            printf("Corrupted ACK received. Ignoring.\n");
+        }
+        return;
+    }
+
+    total_ACKs_received++;
+    int acknum = packet.acknum;
+    int window_index = acknum % WINDOW_SIZE;
+
+    /* Check if ACK is within current window */
+    if ((acknum - sender_base) % SEQ_NUM_MODULO < WINDOW_SIZE) {
+        if (!acked[window_index]) {
+            acked[window_index] = 1;
+            new_ACKs++;
+
+            if (TRACE > 1) {
+                printf("ACK %d received. Window before: base=%d\n", acknum, sender_base);
+            }
+
+            /* Slide window forward continuously */
+            while (acked[sender_base % WINDOW_SIZE] && sender_base != sender_next_seq_num) {
+                acked[sender_base % WINDOW_SIZE] = 0;
+                sender_base = (sender_base + 1) % SEQ_NUM_MODULO;
+            }
+
+            if (TRACE > 1) {
+                printf("Window after: base=%d, next=%d\n", sender_base, sender_next_seq_num);
+            }
+
+            /* Restart timer only if unACKed packets remain */
+            stoptimer(A);
+            if (sender_base != sender_next_seq_num) {
+                starttimer(A, RTT);
+            }
+        }
+    }
+}
