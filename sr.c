@@ -38,12 +38,6 @@ int is_corrupted(struct pkt packet) {
     return packet.checksum != calculate_checksum(packet);
 }
 
-void send_packet(int entity, struct pkt packet) {
-    if (TRACE > 2) {
-        printf("Entity %d sending packet seqnum=%d\n", entity, packet.seqnum);
-    }
-    tolayer3(entity, packet);
-}
 
 void send_ack(int entity, int acknum) {
     struct pkt ack_pkt;
@@ -52,5 +46,13 @@ void send_ack(int entity, int acknum) {
     ack_pkt.acknum = acknum;
     ack_pkt.checksum = calculate_checksum(ack_pkt);
     tolayer3(entity, ack_pkt);
+
+}
+
+void send_packet(int entity, struct pkt packet) {
+    if (TRACE > 2) {
+        printf("Entity %d sending packet seqnum=%d\n", entity, packet.seqnum);
+    }
+    tolayer3(entity, packet);
 }
 
