@@ -164,3 +164,39 @@ void B_input(struct pkt packet) {
         send_ack(B, (receiver_expected_seq_num - 1 + SEQ_NUM_MODULO) % SEQ_NUM_MODULO);
         return;
     }
+    int seqnum = packet.seqnum;
+    int window_start = receiver_expected_seq_num;
+    int window_end = (receiver_expected_seq_num + WINDOW_SIZE - 1) % SEQ_NUM_MODULO;
+
+    if (TRACE > 1) {
+        printf("Received packet %d (expected %d, window %d-%d)\n",
+              seqnum, receiver_expected_seq_num, window_start, window_end);
+    }
+
+    /* Check if packet is in window */
+    if ((window_start <= window_end && seqnum >= window_start && seqnum <= window_end) ||
+        (window_start > window_end && (seqnum >= window_start || seqnum <= window_end))) {
+        
+        if (!received[seqnum % WINDOW_SIZE]) {
+            receiver_buffer[seqnum % WINDOW_SIZE] = packet;
+            received[seqnum % WINDOW_SIZE] = 1;
+            packets_received++;
+        }
+
+        send_ack(B, seqnum);
+
+        /* Deliver in-order packets */
+        while (received[receiver_expected_seq_num % WINDOW_SIZE] && 
+               receiver_buffer[receiver_expected_seq_num % WINDOW_SIZE].seqnum == receiver_expected_seq_num) {
+            tolayer5(B, receiver_buffer[receiver_expected_seq_num % WINDOW_SIZE].payload);
+            received[receiver_expected_seq_num % WINDOW_SIZE] = 0;
+            receiver_expected_seq_num = (receiver_expected_seq_num + 1) % SEQ_NUM_MODULO;
+        }
+    } else {
+        if (TRACE > 0) {
+            printf("Out-of-window packet %d received. Sending ACK for %d\n",
+                 seqnum, (receiver_expected_seq_num - 1 + SEQ_NUM_MODULO) % SEQ_NUM_MODULO);
+        }
+        send_ack(B, (receiver_expected_seq_num - 1 + SEQ_NUM_MODULO) % SEQ_NUM_MODULO);
+    }
+}
