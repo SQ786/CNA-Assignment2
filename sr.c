@@ -200,3 +200,7 @@ void B_input(struct pkt packet) {
         send_ack(B, (receiver_expected_seq_num - 1 + SEQ_NUM_MODULO) % SEQ_NUM_MODULO);
     }
 }
+
+/* Dummy implementations */
+void B_output(struct msg message) {}
+void B_timerinterrupt(void) {}
