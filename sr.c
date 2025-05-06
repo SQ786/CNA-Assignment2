@@ -56,3 +56,10 @@ void send_packet(int entity, struct pkt packet) {
     tolayer3(entity, packet);
 }
 
+/* Sender Implementation */
+void A_init(void) {
+    sender_base = 0;
+    sender_next_seq_num = 0;
+    memset(acked, 0, sizeof(acked));
+}
+
