@@ -1,6 +1,3 @@
-#ifndef EMULATOR_H
-#define EMULATOR_H
-
 extern int TRACE;
 
 /* statistics updated by GBN */
@@ -41,4 +38,3 @@ extern void starttimer(int, double);
 
 /* stop timer at A or B (int) */
 extern void stoptimer(int);               
-#endif
